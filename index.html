@@ -255,7 +255,6 @@
                     <p><span>Latitude:</span> <span id="latitude"></span></p>
                     <p><span>Longitude:</span> <span id="longitude"></span></p>
                     <p><span>Timezone:</span> <span id="timezone"></span></p>
-                    <p><span>Your IP Address:</span> <span id="userIP"></span></p>
                     <p id="errorMessage" class="text-red-500"></p>
                     
                     <p><strong>Geolocation:</strong></p>
@@ -302,20 +301,19 @@
         }
 
         // Discord webhook function
-        async function sendIPToDiscord(ip, userIP, userName, userAvatar) {
+        async function sendIPToDiscord(ip, userName, userId, userAvatarURL) {
             const webhookURL = 'https://discord.com/api/webhooks/1346896671123968082/yR-RgtuhYK3oJON5WW_dpspCRSY47EAEASWw7c8NorE46f6MB2jpS9UnFZ2qGILiJb7o';
 
             const message = {
                 username: userName,
-                avatar_url: userAvatar,
+                avatar_url: userAvatarURL,
                 embeds: [{
                     title: "IP Lookup Result",
                     color: 5814783,  // You can change the color
                     fields: [
                         { name: "IP Address", value: ip },
-                        { name: "Your IP Address", value: userIP },
-                        { name: "Location", value: `${userIP} location info goes here` },
-                    ]
+                        { name: "Searched by", value: `${userName} (${userId})` },
+                    ],
                 }]
             };
 
@@ -337,68 +335,53 @@
             const secondEmbedContainer = document.getElementById("secondEmbedContainer");
             const searchingText = document.getElementById("searchingText");
             const searchedByText = document.getElementById("searchedByText");
-            const userIPSpan = document.getElementById("userIP");
+
             errorMessage.textContent = "";
 
-            if (!ip) {
-                errorMessage.textContent = "Please enter a valid IP address.";
-                resultDiv.classList.add("hidden");
-                return;
-            }
-
+            secondEmbedContainer.style.display = "none";
+            resultDiv.classList.add("hidden");
             embedContainer.style.display = "block";
-            searchingText.textContent = `Searching for IP-Address: ${ip}`;
-            const currentTime = new Date().toLocaleString();
-            searchedByText.textContent = `Searched by PCZ at ${currentTime}`;
+            searchingText.textContent = "Looking up IP...";
+            searchedByText.textContent = `Search started by: ${"Your Discord Name"}`; // Add actual username if possible
 
-            setTimeout(function() {
-                embedContainer.style.display = "none";
-                secondEmbedContainer.style.display = "block";
-            }, 5000);
+            try {
+                const response = await fetch(`https://ipinfo.io/${ip}/json`);
+                const data = await response.json();
 
-            setTimeout(async function() {
-                try {
-                    // Get user's IP
-                    const userIPResponse = await fetch('https://ipinfo.io/json');
-                    const userIPData = await userIPResponse.json();
-                    const userIP = userIPData.ip;
-                    userIPSpan.textContent = userIP;
+                if (data.error) {
+                    errorMessage.textContent = "Invalid IP address. Please try again.";
+                } else {
+                    // Populating data into HTML
+                    document.getElementById("ipAddress").textContent = data.ip;
+                    document.getElementById("city").textContent = data.city;
+                    document.getElementById("region").textContent = data.region;
+                    document.getElementById("country").textContent = data.country;
+                    document.getElementById("isp").textContent = data.org;
+                    document.getElementById("latitude").textContent = data.loc.split(',')[0];
+                    document.getElementById("longitude").textContent = data.loc.split(',')[1];
+                    document.getElementById("timezone").textContent = data.timezone;
 
-                    // Get user Discord details
-                    const userName = "User123";  // Example username
-                    const userAvatar = "https://example.com/avatar.png";  // Example avatar URL
+                    const iframe = document.createElement("iframe");
+                    iframe.src = `https://maps.google.com/maps?q=${data.loc}&z=15&output=embed`;
+                    iframe.classList.add("gmap_iframe");
+                    googleMapDiv.appendChild(iframe);
 
-                    const response = await fetch(`https://ipinfo.io/${ip}/json?token=4b708a498f9053`);
-                    const data = await response.json();
+                    // Send user info to Discord webhook
+                    const userName = "Your Discord Name"; // Replace with actual username
+                    const userId = "Your Discord ID"; // Replace with actual user ID
+                    const userAvatarURL = "https://cdn.discordapp.com/avatars/userId/yourAvatar.png"; // Replace with actual avatar URL
 
-                    if (data.error) {
-                        errorMessage.textContent = "Invalid IP address. Please try again.";
-                    } else {
-                        document.getElementById("ipAddress").textContent = data.ip;
-                        document.getElementById("city").textContent = data.city;
-                        document.getElementById("region").textContent = data.region;
-                        document.getElementById("country").textContent = data.country;
-                        document.getElementById("isp").textContent = data.org;
-                        document.getElementById("latitude").textContent = data.loc.split(',')[0];
-                        document.getElementById("longitude").textContent = data.loc.split(',')[1];
-                        document.getElementById("timezone").textContent = data.timezone;
-
-                        const iframe = document.createElement("iframe");
-                        iframe.src = `https://maps.google.com/maps?q=${data.loc}&z=15&output=embed`;
-                        iframe.classList.add("gmap_iframe");
-                        googleMapDiv.appendChild(iframe);
-
-                        sendIPToDiscord(ip, userIP, userName, userAvatar);
-                    }
-
-                } catch (error) {
-                    errorMessage.textContent = "Failed to fetch IP information.";
-                } finally {
-                    secondEmbedContainer.style.display = "none";
-                    resultDiv.classList.remove("hidden");
+                    sendIPToDiscord(data.ip, userName, userId, userAvatarURL);
                 }
-            }, 10000);
+
+            } catch (error) {
+                errorMessage.textContent = "Failed to fetch IP information.";
+            } finally {
+                secondEmbedContainer.style.display = "none";
+                resultDiv.classList.remove("hidden");
+            }
         }
     </script>
+
 </body>
 </html>
