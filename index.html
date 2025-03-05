@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
-            background: linear-gradient(to bottom right, #1e3a8a, #1e3a8a 50%, rgba(0, 0, 0, 0.7) 100%);
+            background-color: #1e3a8a; /* Achtergrondkleur zonder fade-effect */
             transition: background-color 0.5s ease;
         }
 
@@ -167,7 +167,7 @@
         const defaultButtonColor = "#4CAF50";
 
         // Set initial colors
-        document.body.style.background = `linear-gradient(to bottom right, ${defaultBackgroundColor}, ${defaultBackgroundColor} 50%, rgba(0, 0, 0, 0.7) 100%)`;
+        document.body.style.backgroundColor = defaultBackgroundColor;
         const lookupButton = document.getElementById('lookupButton');
         lookupButton.style.backgroundColor = defaultButtonColor;
         lookupButton.style.borderColor = defaultButtonColor;
@@ -183,7 +183,7 @@
             const buttonColor = document.getElementById('buttonColor').value;
 
             // Update background color
-            document.body.style.background = `linear-gradient(to bottom right, ${backgroundColor}, ${backgroundColor} 50%, rgba(0, 0, 0, 0.7) 100%)`;
+            document.body.style.backgroundColor = backgroundColor;
 
             // Update lookup button color
             lookupButton.style.backgroundColor = buttonColor;
