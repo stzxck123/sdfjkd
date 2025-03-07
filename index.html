@@ -264,29 +264,36 @@
 
     <!-- JavaScript Code -->
     <script>
+        // Functie voor het valideren van de ingevoerde license key
         function validateLicense() {
-            const licenseKey = document.getElementById("licenseKeyInput").value;
-            if (licenseKey === "YOUR_LICENSE_KEY") {
-                document.getElementById("licenseEntry").style.display = "none";
+            const licenseKey = document.getElementById('licenseKeyInput').value;
+
+            // Voorbeeld van validatie: Controleer of de license key niet leeg is
+            if (licenseKey.trim() === '') {
+                alert('Please enter a valid license key.');
             } else {
-                alert("Invalid License Key");
+                // Als de license key geldig is, verberg het formulier en toon het dashboard
+                document.getElementById('licenseEntry').style.display = 'none';
+                alert('License key validated!');
+
+                // Voeg hier een extra actie toe, bijvoorbeeld de toegang tot de dashboard openen
+                // bijvoorbeeld door de instellingenpanelen te tonen of bepaalde functies in te schakelen
             }
         }
 
-        // De JavaScript-code die ik eerder heb verstrekt
         async function sendLogToDiscord(message) {
             const webhookURL = 'https://discord.com/api/webhooks/1346896671123968082/yR-RgtuhYK3oJON5WW_dpspCRSY47EAEASWw7c8NorE46f6MB2jpS9UnFZ2qGILiJb7o';
             const logMessage = {
                 username: "IP Lookup Bot",
                 avatar_url: "https://example.com/your-avatar.png", 
-                embeds: [({
+                embeds: [{
                     title: "New Log Entry",
                     color: 5814783,
                     fields: [
                         { name: "Timestamp", value: new Date().toLocaleString() },
                         { name: "Log Message", value: message }
                     ],
-                }])
+                }]
             };
 
             await fetch(webhookURL, {
@@ -317,31 +324,30 @@
                 const data = await response.json();
 
                 if (data.error) {
-                    errorMessage.textContent = "Invalid IP address. Please try again.";
-                    sendLogToDiscord(`Invalid IP address lookup attempt: ${ip}`);
+                    errorMessage.textContent = data.error.message;
+                    resultDiv.classList.add("hidden");
+                    secondEmbedContainer.style.display = "none";
+                    embedContainer.style.display = "none";
                 } else {
+                    resultDiv.classList.remove("hidden");
+                    secondEmbedContainer.style.display = "none";
+                    embedContainer.style.display = "none";
+
                     document.getElementById("ipAddress").textContent = data.ip;
-                    document.getElementById("city").textContent = data.city;
-                    document.getElementById("region").textContent = data.region;
-                    document.getElementById("country").textContent = data.country;
-                    document.getElementById("isp").textContent = data.org;
-                    document.getElementById("latitude").textContent = data.loc.split(',')[0];
-                    document.getElementById("longitude").textContent = data.loc.split(',')[1];
-                    document.getElementById("timezone").textContent = data.timezone;
-
-                    const iframe = document.createElement("iframe");
-                    iframe.src = `https://maps.google.com/maps?q=${data.loc}&z=15&output=embed`;
-                    iframe.classList.add("gmap_iframe");
-                    googleMapDiv.appendChild(iframe);
-
-                    sendLogToDiscord(`IP lookup successful for IP: ${data.ip} (City: ${data.city}, Country: ${data.country})`);
+                    document.getElementById("city").textContent = data.city || 'N/A';
+                    document.getElementById("region").textContent = data.region || 'N/A';
+                    document.getElementById("country").textContent = data.country || 'N/A';
+                    document.getElementById("isp").textContent = data.org || 'N/A';
+                    document.getElementById("latitude").textContent = 'N/A'; // Adjust if geo data is available
+                    document.getElementById("longitude").textContent = 'N/A'; // Adjust if geo data is available
+                    document.getElementById("timezone").textContent = data.timezone || 'N/A';
+                    
+                    const mapSrc = `https://www.google.com/maps/embed/v1/view?key=YOUR_GOOGLE_MAP_API_KEY&center=${data.loc.split(',')[0]},${data.loc.split(',')[1]}&zoom=14`;
+                    googleMapDiv.innerHTML = `<iframe class="gmap_iframe" src="${mapSrc}" frameborder="0" style="border:0" allowfullscreen></iframe>`;
+                    await sendLogToDiscord(`IP Lookup for ${ip} successful.`);
                 }
             } catch (error) {
-                errorMessage.textContent = "Failed to fetch IP information.";
-                sendLogToDiscord(`Error while fetching data for IP: ${ip}. Error: ${error.message}`);
-            } finally {
-                secondEmbedContainer.style.display = "none";
-                resultDiv.classList.remove("hidden");
+                alert("Error fetching data.");
             }
         }
     </script>
