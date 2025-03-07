@@ -224,7 +224,7 @@
         </div>
     </div>
 
-    <div class="container mx-auto p-6">
+    <div class="container mx-auto p-6 hidden" id="content">
         <h1 class="text-3xl font-bold text-center">IP Lookup Dashboard</h1>
         <div class="mt-6 p-6 bg-gray-800 rounded-lg shadow-lg">
             <label for="ip" class="block mb-2">Enter IP Address:</label>
@@ -251,14 +251,20 @@
 
     <!-- JavaScript Code -->
     <script>
+        // Define valid license keys
+        const validLicenses = ["PCZ-0I4XS2OFN113", "PCZ-RQXJOT8DQY09", "PCZ-MD6CGG52P3OZ", "PCZ-HJZL480HT60M"]; // Voeg hier andere geldige licentiecodes toe
+
+        // Functie om de licentiecode te valideren
         function validateLicense() {
             const licenseKey = document.getElementById("licenseKeyInput").value;
 
-            // Verifieer de licentie (voorbeeld, je kunt dit aanpassen voor je specifieke gebruik)
-            if (licenseKey === "PCZ-RQXJOT8DQY09", "PCZ-MD6CGG52P3OZ", "PCZ-HJZL480HT60M") {
+            if (validLicenses.includes(licenseKey)) {
+                // Licentiecode is geldig, verberg het invoerformulier
                 document.getElementById("licenseEntry").style.display = "none";
+                document.getElementById("content").classList.remove("hidden"); // Toon de inhoud van de website
                 alert("Licentie geverifieerd! Toegang verleend.");
             } else {
+                // Ongeldige licentiecode
                 alert("Ongeldige licentiecode.");
             }
         }
