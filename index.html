@@ -255,10 +255,11 @@
             const licenseKey = document.getElementById("licenseKeyInput").value;
 
             // Verifieer de licentie (voorbeeld, je kunt dit aanpassen voor je specifieke gebruik)
-            if (licenseKey === "jouwLicentieCode") {
+            if (licenseKey === "PCZ-RQXJOT8DQY09", "PCZ-MD6CGG52P3OZ", "PCZ-HJZL480HT60M") {
                 document.getElementById("licenseEntry").style.display = "none";
+                alert("Licentie geverifieerd! Toegang verleend.");
             } else {
-                alert("Invalid License Key");
+                alert("Ongeldige licentiecode.");
             }
         }
 
